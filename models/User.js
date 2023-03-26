@@ -1,18 +1,16 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const config = require('config');
-const { check, validationResult } = require('express-validator');
-
 const UserSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: true
+        required: true, // This will make sure that the name is required
+        unique: true // This will make sure that the name is unique
     },
     email: {
         type: String,
         required: true,
-        unique: true
+        unique: true // This will make sure that the email is unique
     },
     password: {
         type: String,
@@ -21,62 +19,61 @@ const UserSchema = new mongoose.Schema({
     confirmPassword: {
         type: String,
         required: true,
-        validate: {
-            validator: function(el) {
+        validate: { // This is for comparing the password and confirm password
+            validator: function(el){
                 return el === this.password;
             },
-            message: 'Password are not the same!'
+            message: 'Passwords are not the same!'
         }
+
     },
     date: {
         type: Date,
-        default: Date.now
-    },
-    tokens: [{
-        token: {
-            type: String,
-            required: true 
-        }
-    }]
+        default: Date.now // This will automatically add the date
+    }    
 });
 
-UserSchema.pre('save', async function(next) {
-    if(this.isModified('password')) {
+// This function will run before the user is saved to the database
+UserSchema.pre('save', async function(next){
+    if(this.isModified('password')){
         this.password = await bcrypt.hash(this.password, 10);
         this.confirmPassword = await bcrypt.hash(this.confirmPassword, 10);
+        this.confirmPassword = undefined // This is so that it does not store in the database
     }
     next();
 });
-
-UserSchema.methods.generateAuthToken = async function() {
-    try {
-        let token = jwt.sign({_id: this._id}, config.get('jstSecret'));
-        this.tokens = this.tokens.concat({token: token});
-        await this.save();
+// This function generates the token
+UserSchema.methods.generateAuthToken = async function(){
+    try{
+        let token = jwt.sign({_id: this._id}, process.env.TOKEN_SECRET_KEY);
+        // this.tokens = this.tokens.concat({token: token});
+        // await this.save();
         return token;
-    } catch (error) {
+    } catch(error) {
         console.log(error);
     }
-};
+}
 
-UserSchema.methods.verifyPassword = async function(password) {
+// This function will compare the password
+UserSchema.methods.verifyPassword = async function(password){
     const user = this;
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
+    if(!isMatch){
         throw new Error('Unable to login');
     }
-};
+    return user;
 
+}
+//
 UserSchema.statics.findByCredentials = async (email, password) => {
-    const user = await UserSchema.findOne({ email });
-    if (!user) {
+    const user = await User.findOne({email});
+    if(!user){
         throw new Error('Unable to login');
     }
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
+    if(!isMatch){
         throw new Error('Unable to login');
     }
     return user;
 }
-
-module.exports = mongoose.model('User', UserSchema)
+module.exports = mongoose.model('User', UserSchema);

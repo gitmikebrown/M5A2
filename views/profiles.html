@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="UTF-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Home</title>
+   </head>
+   <body>
+      <header class="main-header">
+         <nav class="main-header__nav">
+            <ul class="main-header__item-list" class="form-select" size="3", aria-label="size 3 select example">
+               <li class="main-header__item"><a href="home" class="active">Home</a></li>
+               <li class="main-header__item"><a href="signUp" class="active">Sign Up</a></li>
+               <!--the href resources are always a GET request so the calls should always hit the GET route paths in the API-->
+               <li class="main-header__item"><a href="login" class="active">Login</a></li>
+            </ul>
+         </nav>
+      </header>
+      <main>
+         <div class="form-control mx-auto" style="width: 200px;">
+            <h6>This is a test page to validate application resources</h6>
+            <h6>User: <%= name %></h6>
+            <h6>Email: <%= email %></h6>
+         </div>
+      </main>
+   </body>
+</html>
